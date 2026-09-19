@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Interactive English Activity Generator</title>
+
+  <style>
+
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 28px;
+    }
+
+    p {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 220px;
+      font-family: monospace;
+      font-size: 14px;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 1px solid #999;
+      border-radius: 5px;
+      resize: vertical;
+    }
+
+    .buttons {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      color: white;
+      padding: 11px 18px;
+      border-radius: 5px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .create-button {
+      background-color: #2e7d32;
+    }
+
+    .share-button {
+      background-color: #0066cc;
+    }
+
+    .reset-button {
+      background-color: #c62828;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* =======================================================
+       EXERCISE
+       ======================================================= */
+
+    #exercise-panel {
+      margin-top: 20px;
+    }
+
+    .word-bank {
+      background-color: #eef2f5;
+      border: 1px solid #d0d7de;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .item {
+      margin-bottom: 22px;
+      font-size: 16px;
+      line-height: 2;
+    }
+
+    /* =======================================================
+       TEXT INPUTS
+       ======================================================= */
+
+    input[type="text"] {
+      border: 1px solid #999;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 15px;
+      width: 110px;
+      text-align: center;
+      margin: 0 2px;
+    }
+
+    input.correct {
+      border-color: #2e7d32;
+      background-color: #e8f5e9;
+      color: #1b5e20;
+    }
+
+    input.incorrect {
+      border-color: #c62828;
+      background-color: #ffebee;
+      color: #b71c1c;
+    }
+
+    /* =======================================================
+       MULTIPLE CHOICE
+       ======================================================= */
+
+    .mc-options {
+      margin-top: 8px;
+      margin-left: 8px;
+      line-height: 1.8;
+    }
+
+    .mc-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 8px;
+      margin: 4px 0;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .mc-option:hover {
+      background-color: #f2f2f2;
+    }
+
+    .mc-option input[type="radio"] {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .mc-option.correct {
+      background-color: #e8f5e9;
+      color: #1b5e20;
+    }
+
+    .mc-option.incorrect {
+      background-color: #ffebee;
+      color: #b71c1c;
+    }
+
+    /* =======================================================
+       INLINE CHOICE
+       ======================================================= */
+
+    .inline-choice-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      margin: 0 3px;
+      vertical-align: middle;
+    }
+
+    .inline-choice-parenthesis {
+      font-weight: normal;
+    }
+
+    .inline-choice-separator {
+      margin: 0 2px;
+    }
+
+    .inline-choice-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      padding: 2px 3px;
+      border-radius: 4px;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+
+    .inline-choice-option:hover {
+      background-color: #f2f2f2;
+    }
+
+    .inline-choice-option input[type="radio"] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .inline-choice-option.correct {
+      background-color: #e8f5e9;
+      color: #1b5e20;
+    }
+
+    .inline-choice-option.incorrect {
+      background-color: #ffebee;
+      color: #b71c1c;
+    }
+
+    /* =======================================================
+       EXERCISE CONTROLS
+       ======================================================= */
+
+    .exercise-controls {
+      margin-top: 20px;
+    }
+
+    .check-button {
+      background-color: #0066cc;
+    }
+
+    .exercise-reset-button {
+      background-color: #c62828;
+    }
+
+    #score {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+  <!-- =====================================================
+       GENERATOR
+       ===================================================== -->
+
+  <div class="card">
+
+    <h1>
+      Interactive English Activity Generator
+    </h1>
+
+    <p>
+      Paste the json data in the box below.
+    </p>
+
+    <textarea
+      id="json-input"
+      placeholder="Paste JSON here..."
+    ></textarea>
+
+    <div class="buttons">
+
+      <button
+        class="create-button"
+        onclick="createExercise()"
+      >
+        Create Exercise
+      </button>
+
+      <button
+        class="share-button"
+        onclick="createShareableLink()"
+      >
+        Create sharable link
+      </button>
+
+      <button
+        class="reset-button"
+        onclick="resetGenerator()"
+      >
+        Reset Exercise
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       EXERCISE
+       ===================================================== -->
+
+  <div
+    id="exercise-panel"
+    class="card hidden"
+  >
+
+    <h2 id="exercise-instructions"></h2>
+
+    <div
+      id="word-bank-container"
+      class="word-bank hidden"
+    >
+      Word Bank:
+      <span id="word-bank-list"></span>
+    </div>
+
+    <div id="items-container"></div>
+
+    <div class="exercise-controls">
+
+      <button
+        class="check-button"
+        onclick="checkAnswers()"
+      >
+        Check Answers
+      </button>
+
+      <button
+        class="exercise-reset-button"
+        onclick="resetExerciseAnswers()"
+      >
+        Reset Exercise
+      </button>
+
+      <div id="score"></div>
+
+    </div>
+
+  </div>
+
+
+  <script>
+
+    let exerciseData = null;
+
+
+    /* =========================================================
+       SHUFFLE
+       ========================================================= */
+
+    function shuffleArray(array) {
+
+      const shuffled = [...array];
+
+      for (
+        let i = shuffled.length - 1;
+        i > 0;
+        i--
+      ) {
+
+        const j =
+          Math.floor(
+            Math.random() * (i + 1)
+          );
+
+        [
+          shuffled[i],
+          shuffled[j]
+        ] =
+        [
+          shuffled[j],
+          shuffled[i]
+        ];
+
+      }
+
+      return shuffled;
+    }
+
+
+    /* =========================================================
+       CREATE EXERCISE
+       ========================================================= */
+
+    function createExercise() {
+
+      const rawJson =
+        document
+          .getElementById('json-input')
+          .value
+          .trim();
+
+
+      if (!rawJson) {
+
+        alert(
+          "Please paste the JSON data first."
+        );
+
+        return;
+
+      }
+
+
+      try {
+
+        const parsed =
+          JSON.parse(rawJson);
+
+
+        exerciseData =
+          parsed.activity || parsed;
+
+
+        exerciseData.activity_type =
+          parsed.activity_type ||
+          exerciseData.activity_type ||
+          "fill_in_blank";
+
+
+        if (
+          parsed.instructions &&
+          !exerciseData.instructions
+        ) {
+
+          exerciseData.instructions =
+            parsed.instructions;
+
+        }
+
+
+        renderExercise(
+          exerciseData
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(error);
+
+        alert(
+          "Invalid JSON format. Please check the JSON and try again."
+        );
+
+      }
+
+    }
+
+
+    /* =========================================================
+       NORMALIZE BLANK MARKERS
+       ========================================================= */
+
+    function normalizeBlankMarkers(prompt) {
+
+      return String(prompt).replace(
+        /(?:\*{3,}|_{3,})/g,
+        '___'
+      );
+
+    }
+
+
+    /* =========================================================
+       FORMAT WORD BANK
+       ========================================================= */
+
+    function formatWordBankOption(option) {
+
+      return String(option)
+        .split('/')
+        .map(
+          part => part.trim()
+        )
+        .join(', ');
+
+    }
+
+
+    /* =========================================================
+       RENDER EXERCISE
+       ========================================================= */
+
+    function renderExercise(data) {
+
+      document
+        .getElementById('exercise-panel')
+        .classList
+        .remove('hidden');
+
+
+      document
+        .getElementById('exercise-instructions')
+        .innerText =
+          data.instructions ||
+          "Complete the activity";
+
+
+      /* -------------------------------------------------------
+         WORD BANK
+         ------------------------------------------------------- */
+
+      const wordBank =
+        data.resources?.word_bank;
+
+
+      const wordBankContainer =
+        document.getElementById(
+          'word-bank-container'
+        );
+
+
+      if (
+        Array.isArray(wordBank) &&
+        wordBank.length > 0
+      ) {
+
+        const shuffled =
+          shuffleArray(wordBank);
+
+
+        const formatted =
+          shuffled.map(
+            formatWordBankOption
+          );
+
+
+        document
+          .getElementById(
+            'word-bank-list'
+          )
+          .innerText =
+            formatted.join(' / ');
+
+
+        wordBankContainer
+          .classList
+          .remove('hidden');
+
+      }
+
+      else {
+
+        wordBankContainer
+          .classList
+          .add('hidden');
+
+        document
+          .getElementById(
+            'word-bank-list'
+          )
+          .innerText = '';
+
+      }
+
+
+      /* -------------------------------------------------------
+         ITEMS
+         ------------------------------------------------------- */
+
+      const container =
+        document.getElementById(
+          'items-container'
+        );
+
+
+      container.innerHTML = '';
+
+
+      if (
+        !Array.isArray(data.items)
+      ) {
+
+        console.error(
+          "The exercise does not contain a valid items array."
+        );
+
+        return;
+
+      }
+
+
+      data.items.forEach(
+        (item, itemIndex) => {
+
+          const itemDiv =
+            document.createElement(
+              'div'
+            );
+
+
+          itemDiv.className =
+            'item';
+
+
+          const itemType =
+            item.activity_type ||
+            item.response_type ||
+            data.activity_type;
+
+
+          if (
+            itemType ===
+            'fill_in_blank'
+          ) {
+
+            renderFillInBlankItem(
+              item,
+              itemDiv
+            );
+
+          }
+
+          else if (
+            itemType ===
+            'multiple_choice'
+          ) {
+
+            renderMultipleChoiceItem(
+              item,
+              itemDiv,
+              itemIndex
+            );
+
+          }
+
+          else if (
+            itemType ===
+            'inline_choice'
+          ) {
+
+            renderInlineChoiceItem(
+              item,
+              itemDiv,
+              itemIndex
+            );
+
+          }
+
+          else {
+
+            itemDiv.innerText =
+              item.prompt || "";
+
+          }
+
+
+          container.appendChild(
+            itemDiv
+          );
+
+        }
+      );
+
+    }
+
+
+    /* =========================================================
+       FILL IN THE BLANK
+       ========================================================= */
+
+    function renderFillInBlankItem(
+      item,
+      itemDiv
+    ) {
+
+      if (
+        !Array.isArray(item.blanks)
+      ) {
+
+        itemDiv.innerText =
+          item.prompt || "";
+
+        return;
+
+      }
+
+
+      const normalizedPrompt =
+        normalizeBlankMarkers(
+          item.prompt
+        );
+
+
+      const parts =
+        normalizedPrompt.split(
+          /_{3,}/
+        );
+
+
+      let htmlContent = '';
+
+
+      parts.forEach(
+        (part, index) => {
+
+          htmlContent += part;
+
+
+          if (
+            index <
+            item.blanks.length
+          ) {
+
+            const blank =
+              item.blanks[index];
+
+
+            const acceptable =
+              JSON.stringify(
+                blank.acceptable_answers ||
+                []
+              );
+
+
+            htmlContent += `
+
+              <input
+                type="text"
+                data-correct="${escapeHtml(
+                  blank.correct_answer || ''
+                )}"
+                data-acceptable='${escapeHtml(
+                  acceptable
+                )}'
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="none"
+              >
+
+            `;
+
+          }
+
+        }
+      );
+
+
+      itemDiv.innerHTML =
+        htmlContent;
+
+    }
+
+
+    /* =========================================================
+       MULTIPLE CHOICE
+       ========================================================= */
+
+    function renderMultipleChoiceItem(
+      item,
+      itemDiv,
+      itemIndex
+    ) {
+
+      const prompt =
+        document.createElement(
+          'div'
+        );
+
+
+      prompt.innerText =
+        item.prompt || "";
+
+
+      itemDiv.appendChild(
+        prompt
+      );
+
+
+      const options =
+        Array.isArray(item.options)
+          ? item.options
+          : [];
+
+
+      const optionsContainer =
+        document.createElement(
+          'div'
+        );
+
+
+      optionsContainer.className =
+        'mc-options';
+
+
+      options.forEach(
+        option => {
+
+          const label =
+            document.createElement(
+              'label'
+            );
+
+
+          label.className =
+            'mc-option';
+
+
+          const radio =
+            document.createElement(
+              'input'
+            );
+
+
+          radio.type =
+            'radio';
+
+
+          radio.name =
+            `mc-item-${itemIndex}`;
+
+
+          radio.value =
+            String(option);
+
+
+          radio.dataset.correct =
+            String(
+              item.correct_answer || ""
+            );
+
+
+          radio.dataset.acceptable =
+            JSON.stringify(
+              item.acceptable_answers ||
+              []
+            );
+
+
+          const text =
+            document.createElement(
+              'span'
+            );
+
+
+          text.innerText =
+            String(option);
+
+
+          label.appendChild(
+            radio
+          );
+
+
+          label.appendChild(
+            text
+          );
+
+
+          optionsContainer.appendChild(
+            label
+          );
+
+        }
+      );
+
+
+      itemDiv.appendChild(
+        optionsContainer
+      );
+
+    }
+
+
+    /* =========================================================
+       INLINE CHOICE
+       ========================================================= */
+
+    function renderInlineChoiceItem(
+      item,
+      itemDiv,
+      itemIndex
+    ) {
+
+      if (
+        !Array.isArray(item.blanks)
+      ) {
+
+        itemDiv.innerText =
+          item.prompt || "";
+
+        return;
+
+      }
+
+
+      const normalizedPrompt =
+        normalizeBlankMarkers(
+          item.prompt || ""
+        );
+
+
+      const parts =
+        normalizedPrompt.split(
+          /_{3,}/
+        );
+
+
+      let htmlContent = '';
+
+
+      parts.forEach(
+        (part, blankIndex) => {
+
+          htmlContent += part;
+
+
+          if (
+            blankIndex <
+            item.blanks.length
+          ) {
+
+            const blank =
+              item.blanks[blankIndex];
+
+
+            const options =
+              Array.isArray(
+                blank.options
+              )
+                ? blank.options
+                : [];
+
+
+            if (
+              options.length === 0
+            ) {
+
+              htmlContent +=
+                '<span>___</span>';
+
+              return;
+
+            }
+
+
+            const groupName =
+              `inline-item-${itemIndex}-blank-${blankIndex}`;
+
+
+            const correctAnswer =
+              escapeHtml(
+                blank.correct_answer || ""
+              );
+
+
+            const acceptableAnswers =
+              escapeHtml(
+                JSON.stringify(
+                  blank.acceptable_answers ||
+                  []
+                )
+              );
+
+
+            htmlContent += `
+
+              <span
+                class="inline-choice-group"
+                data-correct="${correctAnswer}"
+                data-acceptable='${acceptableAnswers}'
+              >
+
+                <span
+                  class="inline-choice-parenthesis"
+                >
+                  (
+                </span>
+
+            `;
+
+
+            options.forEach(
+              (option, optionIndex) => {
+
+                if (
+                  optionIndex > 0
+                ) {
+
+                  htmlContent +=
+                    '<span class="inline-choice-separator"> / </span>';
+
+                }
+
+
+                htmlContent += `
+
+                  <label
+                    class="inline-choice-option"
+                  >
+
+                    <input
+                      type="radio"
+                      name="${groupName}"
+                      value="${escapeHtml(
+                        String(option)
+                      )}"
+                    >
+
+                    <span>
+                      ${escapeHtml(
+                        String(option)
+                      )}
+                    </span>
+
+                  </label>
+
+                `;
+
+              }
+            );
+
+
+            htmlContent += `
+
+                <span
+                  class="inline-choice-parenthesis"
+                >
+                  )
+                </span>
+
+              </span>
+
+            `;
+
+          }
+
+        }
+      );
+
+
+      itemDiv.innerHTML =
+        htmlContent;
+
+    }
+
+
+    /* =========================================================
+       ESCAPE HTML
+       ========================================================= */
+
+    function escapeHtml(value) {
+
+      return String(value)
+        .replace(
+          /&/g,
+          '&amp;'
+        )
+        .replace(
+          /</g,
+          '&lt;'
+        )
+        .replace(
+          />/g,
+          '&gt;'
+        )
+        .replace(
+          /"/g,
+          '&quot;'
+        )
+        .replace(
+          /'/g,
+          '&#039;'
+        );
+
+    }
+
+
+    /* =========================================================
+       NORMALIZE ANSWER
+       ========================================================= */
+
+    function normalizeAnswer(value) {
+
+      return String(value)
+        .trim()
+        .toLowerCase();
+
+    }
+
+
+    /* =========================================================
+       CHECK ANSWERS
+       ========================================================= */
+
+    function checkAnswers() {
+
+      if (!exerciseData) return;
+
+
+      let totalQuestions = 0;
+      let correctQuestions = 0;
+
+
+      /* -------------------------------------------------------
+         TEXT INPUTS
+         ------------------------------------------------------- */
+
+      document
+        .querySelectorAll(
+          '#items-container input[type="text"]'
+        )
+        .forEach(
+          input => {
+
+            totalQuestions++;
+
+
+            const userAnswer =
+              normalizeAnswer(
+                input.value
+              );
+
+
+            const correctAnswer =
+              normalizeAnswer(
+                input.dataset.correct ||
+                ''
+              );
+
+
+            let acceptableAnswers =
+              [];
+
+
+            try {
+
+              acceptableAnswers =
+                JSON.parse(
+                  input.dataset.acceptable ||
+                  '[]'
+                )
+                .map(
+                  answer =>
+                    normalizeAnswer(
+                      answer
+                    )
+                );
+
+            }
+
+            catch(e) {}
+
+            
+            input.classList.remove(
+              'correct',
+              'incorrect'
+            );
+
+
+            if (
+              userAnswer !== '' &&
+              (
+                userAnswer ===
+                  correctAnswer ||
+                acceptableAnswers.includes(
+                  userAnswer
+                )
+              )
+            ) {
+
+              input.classList.add(
+                'correct'
+              );
+
+              correctQuestions++;
+
+            }
+
+            else {
+
+              input.classList.add(
+                'incorrect'
+              );
+
+            }
+
+          }
+        );
+
+
+      /* -------------------------------------------------------
+         MULTIPLE CHOICE
+         ------------------------------------------------------- */
+
+      document
+        .querySelectorAll(
+          '.mc-options'
+        )
+        .forEach(
+          group => {
+
+            totalQuestions++;
+
+
+            const selected =
+              group.querySelector(
+                'input[type="radio"]:checked'
+              );
+
+
+            let isCorrect =
+              false;
+
+
+            if (selected) {
+
+              const userAnswer =
+                normalizeAnswer(
+                  selected.value
+                );
+
+
+              const correctAnswer =
+                normalizeAnswer(
+                  selected.dataset.correct ||
+                  ''
+                );
+
+
+              let acceptableAnswers =
+                [];
+
+
+              try {
+
+                acceptableAnswers =
+                  JSON.parse(
+                    selected.dataset.acceptable ||
+                    '[]'
+                  )
+                  .map(
+                    answer =>
+                      normalizeAnswer(
+                        answer
+                      )
+                  );
+
+              }
+
+              catch(e) {}
+
+
+              isCorrect =
+                userAnswer ===
+                  correctAnswer ||
+                acceptableAnswers.includes(
+                  userAnswer
+                );
+
+            }
+
+
+            group
+              .querySelectorAll(
+                '.mc-option'
+              )
+              .forEach(
+                label => {
+
+                  label.classList.remove(
+                    'correct',
+                    'incorrect'
+                  );
+
+                }
+              );
+
+
+            if (selected) {
+
+              const label =
+                selected.closest(
+                  '.mc-option'
+                );
+
+
+              if (label) {
+
+                label.classList.add(
+                  isCorrect
+                    ? 'correct'
+                    : 'incorrect'
+                );
+
+              }
+
+            }
+
+
+            if (isCorrect) {
+
+              correctQuestions++;
+
+            }
+
+          }
+        );
+
+
+      /* -------------------------------------------------------
+         INLINE CHOICE
+         ------------------------------------------------------- */
+
+      document
+        .querySelectorAll(
+          '.inline-choice-group'
+        )
+        .forEach(
+          group => {
+
+            totalQuestions++;
+
+
+            const selected =
+              group.querySelector(
+                'input[type="radio"]:checked'
+              );
+
+
+            let isCorrect =
+              false;
+
+
+            if (selected) {
+
+              const userAnswer =
+                normalizeAnswer(
+                  selected.value
+                );
+
+
+              const correctAnswer =
+                normalizeAnswer(
+                  group.dataset.correct ||
+                  ''
+                );
+
+
+              let acceptableAnswers =
+                [];
+
+
+              try {
+
+                acceptableAnswers =
+                  JSON.parse(
+                    group.dataset.acceptable ||
+                    '[]'
+                  )
+                  .map(
+                    answer =>
+                      normalizeAnswer(
+                        answer
+                      )
+                  );
+
+              }
+
+              catch(e) {}
+
+
+              isCorrect =
+                userAnswer ===
+                  correctAnswer ||
+                acceptableAnswers.includes(
+                  userAnswer
+                );
+
+            }
+
+
+            group
+              .querySelectorAll(
+                '.inline-choice-option'
+              )
+              .forEach(
+                label => {
+
+                  label.classList.remove(
+                    'correct',
+                    'incorrect'
+                  );
+
+                }
+              );
+
+
+            if (selected) {
+
+              const label =
+                selected.closest(
+                  '.inline-choice-option'
+                );
+
+
+              if (label) {
+
+                label.classList.add(
+                  isCorrect
+                    ? 'correct'
+                    : 'incorrect'
+                );
+
+              }
+
+            }
+
+
+            if (isCorrect) {
+
+              correctQuestions++;
+
+            }
+
+          }
+        );
+
+
+      /* -------------------------------------------------------
+         SCORE
+         ------------------------------------------------------- */
+
+      const score =
+        document.getElementById(
+          'score'
+        );
+
+
+      score.innerText =
+        `Score: ${correctQuestions} / ${totalQuestions}`;
+
+    }
+
+
+    /* =========================================================
+       RESET ANSWERS ONLY
+       ========================================================= */
+
+    function resetExerciseAnswers() {
+
+      document
+        .querySelectorAll(
+          '#items-container input[type="text"]'
+        )
+        .forEach(
+          input => {
+
+            input.value = '';
+
+            input.classList.remove(
+              'correct',
+              'incorrect'
+            );
+
+          }
+        );
+
+
+      document
+        .querySelectorAll(
+          '#items-container input[type="radio"]'
+        )
+        .forEach(
+          radio => {
+
+            radio.checked =
+              false;
+
+          }
+        );
+
+
+      document
+        .querySelectorAll(
+          '.mc-option, .inline-choice-option'
+        )
+        .forEach(
+          label => {
+
+            label.classList.remove(
+              'correct',
+              'incorrect'
+            );
+
+          }
+        );
+
+
+      document.getElementById(
+        'score'
+      ).innerText = '';
+
+    }
+
+
+    /* =========================================================
+       RESET GENERATOR
+       ========================================================= */
+
+    function resetGenerator() {
+
+      exerciseData = null;
+
+
+      document
+        .getElementById(
+          'json-input'
+        )
+        .value = '';
+
+
+      document
+        .getElementById(
+          'exercise-panel'
+        )
+        .classList
+        .add('hidden');
+
+
+      document
+        .getElementById(
+          'score'
+        )
+        .innerText = '';
+
+    }
+
+
+    /* =========================================================
+       CREATE SHAREABLE LINK
+       ========================================================= */
+
+    function createShareableLink() {
+
+      if (!exerciseData) {
+
+        /*
+          If the exercise has not been created yet,
+          first try to create it from the JSON box.
+        */
+
+        const rawJson =
+          document
+            .getElementById(
+              'json-input'
+            )
+            .value
+            .trim();
+
+
+        if (!rawJson) {
+
+          alert(
+            "Please paste the JSON data first."
+          );
+
+          return;
+
+        }
+
+
+        try {
+
+          const parsed =
+            JSON.parse(
+              rawJson
+            );
+
+
+          exerciseData =
+            parsed.activity ||
+            parsed;
+
+
+          exerciseData.activity_type =
+            parsed.activity_type ||
+            exerciseData.activity_type ||
+            "fill_in_blank";
+
+
+          if (
+            parsed.instructions &&
+            !exerciseData.instructions
+          ) {
+
+            exerciseData.instructions =
+              parsed.instructions;
+
+          }
+
+        }
+
+        catch(error) {
+
+          alert(
+            "Invalid JSON format. Please check the JSON."
+          );
+
+          return;
+
+        }
+
+      }
+
+
+      try {
+
+        const json =
+          JSON.stringify(
+            exerciseData
+          );
+
+
+        const encoded =
+          btoa(
+            unescape(
+              encodeURIComponent(
+                json
+              )
+            )
+          );
+
+
+        const shareUrl =
+          window.location.origin +
+          window.location.pathname +
+          '#activity=' +
+          encodeURIComponent(
+            encoded
+          );
+
+
+        /*
+          Copy the link.
+        */
+
+        if (
+          navigator.clipboard &&
+          navigator.clipboard.writeText
+        ) {
+
+          navigator.clipboard
+            .writeText(
+              shareUrl
+            )
+            .then(
+              () => {
+
+                alert(
+                  "Sharable link copied to clipboard."
+                );
+
+              }
+            )
+            .catch(
+              () => {
+
+                window.prompt(
+                  "Copy this sharable link:",
+                  shareUrl
+                );
+
+              }
+            );
+
+        }
+
+        else {
+
+          window.prompt(
+            "Copy this sharable link:",
+            shareUrl
+          );
+
+        }
+
+      }
+
+      catch(error) {
+
+        console.error(error);
+
+        alert(
+          "Could not create the sharable link."
+        );
+
+      }
+
+    }
+
+
+    /* =========================================================
+       LOAD SHARED EXERCISE
+       ========================================================= */
+
+    function loadSharedExercise() {
+
+      const hash =
+        window.location.hash;
+
+
+      if (
+        !hash.startsWith(
+          '#activity='
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      try {
+
+        const encoded =
+          decodeURIComponent(
+            hash.substring(
+              '#activity='.length
+            )
+          );
+
+
+        const json =
+          decodeURIComponent(
+            escape(
+              atob(encoded)
+            )
+          );
+
+
+        const parsed =
+          JSON.parse(
+            json
+          );
+
+
+        exerciseData =
+          parsed.activity ||
+          parsed;
+
+
+        exerciseData.activity_type =
+          parsed.activity_type ||
+          exerciseData.activity_type ||
+          "fill_in_blank";
+
+
+        if (
+          parsed.instructions &&
+          !exerciseData.instructions
+        ) {
+
+          exerciseData.instructions =
+            parsed.instructions;
+
+        }
+
+
+        renderExercise(
+          exerciseData
+        );
+
+      }
+
+      catch(error) {
+
+        console.error(error);
+
+        alert(
+          "The shared exercise could not be loaded."
+        );
+
+      }
+
+    }
+
+
+    /* =========================================================
+       LOAD SHARED EXERCISE WHEN PAGE OPENS
+       ========================================================= */
+
+    window.addEventListener(
+      'DOMContentLoaded',
+      function() {
+
+        loadSharedExercise();
+
+      }
+    );
+
+  </script>
+
+</body>
+</html>
